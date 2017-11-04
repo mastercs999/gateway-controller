@@ -1,0 +1,1 @@
+nuget pack GatewayController.csproj -Prop Configuration=Release -IncludeReferencedProjects

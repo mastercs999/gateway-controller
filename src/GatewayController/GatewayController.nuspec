@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>http://www.gnu.org/licenses/gpl.html</licenseUrl>
+    <projectUrl>https://github.com/mastercs999/gateway-controller</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>$description$</description>
+    <summary>$description$</summary>
+    <releaseNotes>Initial version</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>gateway controller ib interactive brokers</tags>
+  </metadata>
+  <files>
+    <file src="Install.ps1" target="tools\Install.ps1" />
+  </files>
+</package>
