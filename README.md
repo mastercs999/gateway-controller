@@ -16,7 +16,7 @@ gateway.Stop();
 ```
 
 ## Install
-* Use NuGet package [TODO]
+* Use a [NuGet](https://www.nuget.org/packages/GatewayController/) package
 * Or use the code in this repository
 
 ## Prequisites
