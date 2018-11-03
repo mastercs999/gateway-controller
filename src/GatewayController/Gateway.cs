@@ -20,7 +20,7 @@ namespace GatewayController
         [DllImport("Kernel32.Dll", EntryPoint = "Wow64EnableWow64FsRedirection")]
         private static extern bool EnableWow64FSRedirection(bool enable);
 
-        private ILogger _____________________________________________________________________________Logger;
+        private ILogger _Logger;
         private readonly string IBControllerDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "IBController");
         private string StartBatchPath => Path.Combine(IBControllerDirectory, "IBControllerGatewayStart.bat");
         private string StopBatchPath => Path.Combine(IBControllerDirectory, "IBControllerStop.bat");
@@ -30,13 +30,21 @@ namespace GatewayController
 
 
 
+        /// <summary>
+        ///  Gateway with no logging
+        /// </summary>
         public Gateway() : this(new SilentLogger())
         {
 
         }
+
+        /// <summary>
+        /// Gateway with file or console logging
+        /// </summary>
+        /// <param name="logger"></param>
         public Gateway(ILogger logger)
         {
-            _____________________________________________________________________________Logger = logger;
+            _Logger = logger;
         }
 
 
@@ -66,17 +74,17 @@ namespace GatewayController
         /// <exception cref="GatewayController.Exceptions.GatewayException">Throw when starting the gateway start fails - not able to find gateway process</exception>
         public void Start(string version, string username, string password, bool liveAccount, int afterStartTimeout)
         {
-            _____________________________________________________________________________Logger.Write($"Request for starting gateway with version {version} for {username} and live account was set to {liveAccount}");
+            _Logger.Write($"Request for starting gateway with version {version} for {username} and live account was set to {liveAccount}");
 
             // Prevent multiple instances
             if (IsGatewayRunning())
             {
-                _____________________________________________________________________________Logger.Write("Gateway is already running. So we'll kill it first");
+                _Logger.Write("Gateway is already running. So we'll kill it first");
                 Stop();
             }
 
             // Modify batch file with given information
-            _____________________________________________________________________________Logger.Write($"Let's modify some variables in {StartBatchPath}");
+            _Logger.Write($"Let's modify some variables in {StartBatchPath}");
             ChangeBatchVariables(StartBatchPath, new NameValueCollection()
             {
                 { "TWS_MAJOR_VRSN", version },
@@ -87,12 +95,12 @@ namespace GatewayController
                 { "TWSPASSWORD", password },
                 { "TRADING_MODE", liveAccount ? "live" : "paper" }
             });
-            _____________________________________________________________________________Logger.Write("Variables were successfully changed");
+            _Logger.Write("Variables were successfully changed");
 
             // Start IB
-            _____________________________________________________________________________Logger.Write($"Starting gateway with by batch file {StartBatchPath}");
+            _Logger.Write($"Starting gateway with by batch file {StartBatchPath}");
             RunBatch(StartBatchPath, "/INLINE");
-            _____________________________________________________________________________Logger.Write("Batch file was started");
+            _Logger.Write("Batch file was started");
 
             // End timeout
             Thread.Sleep(afterStartTimeout * 1000);
@@ -108,35 +116,35 @@ namespace GatewayController
         /// <exception cref="GatewayController.Exceptions.GatewayException">Throw when stopping the gateway fails - gateway process is still running</exception>
         public void Stop()
         {
-            _____________________________________________________________________________Logger.Write($"Request for stopping IB Gateway was received");
+            _Logger.Write($"Request for stopping IB Gateway was received");
 
             // Nothing is needed to be ended
             if (!IsGatewayRunning())
             {
-                _____________________________________________________________________________Logger.Write("IB Gateway doesn't run, so no action is needed to be taken");
+                _Logger.Write("IB Gateway doesn't run, so no action is needed to be taken");
                 return;
             }
 
             // Try to end it gracefully
-            _____________________________________________________________________________Logger.Write($"Let's run stopping batch file: {StopBatchPath}");
+            _Logger.Write($"Let's run stopping batch file: {StopBatchPath}");
             RunBatch(StopBatchPath);
             Thread.Sleep(5000);
-            _____________________________________________________________________________Logger.Write("Stopping batch file was run");
+            _Logger.Write("Stopping batch file was run");
 
             // Kill all telnets we find - this can be remains from previous step
-            _____________________________________________________________________________Logger.Write("Killing all telnet processes...");
+            _Logger.Write("Killing all telnet processes...");
             foreach (Process telnet in FindTelnetProcesses())
                 telnet.Kill();
             Thread.Sleep(1000);
-            _____________________________________________________________________________Logger.Write("All telnet processes should be killed");
+            _Logger.Write("All telnet processes should be killed");
 
             // Didn't work? Kill
             if (IsGatewayRunning())
             {
-                _____________________________________________________________________________Logger.Write("Obviously stopping IB Gateway gracefully didn't work, so we will find its process and kill it");
+                _Logger.Write("Obviously stopping IB Gateway gracefully didn't work, so we will find its process and kill it");
                 FindGatewayProcess()?.Kill();
                 Thread.Sleep(5000);
-                _____________________________________________________________________________Logger.Write("We may have killed IB Gateway process");
+                _Logger.Write("We may have killed IB Gateway process");
             }
 
             // Gateway shouldn't be running
@@ -193,7 +201,7 @@ namespace GatewayController
             if (gatewayProcess == null)
                 gatewayProcess = Process.GetProcessesByName("ibgateway").SingleOrDefault();
 
-            _____________________________________________________________________________Logger.Write(gatewayProcess == null ? "We didn't find gateway process" : $"We found a gateway process called '{gatewayProcess.ProcessName}' with window title '{gatewayProcess.MainWindowTitle}' which has started at {gatewayProcess.StartTime.ToUniversalTime()}");
+            _Logger.Write(gatewayProcess == null ? "We didn't find gateway process" : $"We found a gateway process called '{gatewayProcess.ProcessName}' with window title '{gatewayProcess.MainWindowTitle}' which has started at {gatewayProcess.StartTime.ToUniversalTime()}");
             return gatewayProcess;
         }
         private Process[] FindTelnetProcesses()
